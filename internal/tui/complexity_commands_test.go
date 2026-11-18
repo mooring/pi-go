@@ -87,6 +87,7 @@ func TestCplxSlashCommandSpecs_CoverExpectedSet(t *testing.T) {
 		"/compact", "/subagents", "/history", "/login", "/commit", "/plan", "/run",
 		"/pr-autofix",
 		"/retry",
+		"/sidebar",
 		"/goal",
 		"/skills", "/skill-list", "/skill-load", "/skill-create", "/theme", "/timeline", "/ping",
 		"/model-price-refresh",
@@ -121,6 +122,7 @@ func TestCplxSlashCommands_DerivedOrder(t *testing.T) {
 		"/pr-autofix",
 		// After /run, so "/r" still completes to /run.
 		"/retry",
+		"/sidebar",
 		"/goal",
 		"/skills", "/theme", "/timeline", "/ping", "/model-price-refresh", "/rtk", "/mcp", "/exit", "/quit",
 	}
