@@ -118,6 +118,11 @@ var slashCommandSpecs = []slashCommandSpec{
 		desc: "Watch a GitHub PR's checks and fix them until it is green",
 		run:  (*model).handlePRAutofixCommand,
 	},
+	{
+		name: "/sidebar",
+		desc: "Show or hide the right panel (works in SSH where mouse is off)",
+		run:  slashCmdArgs((*model).handleSidebarCommand),
+	},
 	// After /run and /pr-autofix: autocomplete returns the first prefix match, so
 	// "/r" must keep completing to /run.
 	{name: "/retry", desc: "Re-send the prompt of a turn that failed", run: slashCmdBare((*model).handleRetry)},
@@ -350,6 +355,45 @@ func (m *model) clearSessionContext() {
 
 	if tt := m.cfg.TokenTracker; tt != nil {
 		tt.ResetContextWindow()
+	}
+}
+
+// handleSidebarCommand handles /sidebar on|off to toggle the right panel.
+//
+// This is the keyboard counterpart to the sidebar's mouse-only collapse
+// control: in SSH the terminal does not forward mouse events, so clicking the
+// version row to hide the panel does nothing. The slash command drives the
+// same two flags (sidebarCollapsed + sidebarExpanded) and the same
+// applyResize() + flash path the click uses, so it works wherever a command
+// can be typed — SSH included.
+func (m *model) handleSidebarCommand(args []string) {
+	sub := strings.ToLower(strings.TrimSpace(strings.Join(args, " ")))
+	switch sub {
+	case "on","","yes","open", "1":
+		m.sidebarExpanded = true
+		m.sidebarCollapsed = false
+		m.applyResize()
+		m.chatModel.Messages = append(m.chatModel.Messages, message{
+			role: "assistant",
+			content: fmt.Sprintf(
+				"Panel shown — click %s on the version row to hide it.",
+				sidebarRestoreGlyph,
+			),
+		})
+		return
+	case "off","no","close", "0":
+		m.sidebarCollapsed = true
+		m.applyResize()
+		m.chatModel.Messages = append(m.chatModel.Messages, message{
+			role: "assistant",
+			content: fmt.Sprintf("Panel hidden — click %s to restore it.", sidebarRestoreGlyph),
+		})
+		return
+	default:
+		m.chatModel.Messages = append(m.chatModel.Messages, message{
+			role: "assistant",
+			content: "Usage: `/sidebar` or `/sidebar on` to show, `/sidebar off` to hide the panel.",
+		})
 	}
 }
 
